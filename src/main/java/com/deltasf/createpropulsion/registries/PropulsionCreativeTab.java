@@ -16,7 +16,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.world.item.CreativeModeTab.Output;
 import net.minecraft.world.item.ItemStack;
 
-@SuppressWarnings("removal")
 public class PropulsionCreativeTab {
     private static final DeferredRegister<CreativeModeTab> REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CreatePropulsion.ID);
 

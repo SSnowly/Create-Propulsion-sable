@@ -339,5 +339,4 @@ public class BurnerScenes {
         scene.markAsFinished();
     }
 
-    //TODO: Create burner usage (show that burners can be used to power boilers and heated mixers)
 }
