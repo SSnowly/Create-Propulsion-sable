@@ -4,9 +4,11 @@ import javax.annotation.Nonnull;
 
 import com.deltasf.createpropulsion.CreatePropulsion;
 import com.deltasf.createpropulsion.registries.PropulsionBlocks;
+import com.simibubi.create.infrastructure.ponder.AllCreatePonderTags;
 
 import net.createmod.ponder.api.registration.PonderPlugin;
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
+import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
@@ -34,4 +36,11 @@ public class DeltaPonderPlugin implements PonderPlugin {
 	public void registerScenes(@Nonnull PonderSceneRegistrationHelper<ResourceLocation> helper) {
 		register(helper);
 	}
+
+    @Override
+    public void registerTags(@Nonnull PonderTagRegistrationHelper<ResourceLocation> helper) {
+        final PonderTagRegistrationHelper<Block> HELPER = helper.withKeyFunction(BuiltInRegistries.BLOCK::getKey);
+        HELPER.addToTag(AllCreatePonderTags.KINETIC_APPLIANCES)
+            .add(PropulsionBlocks.STIRLING_ENGINE_BLOCK.get());
+    }
 }
