@@ -50,6 +50,7 @@ public class ThrusterFuelManager extends SimpleJsonResourceReloadListener {
     @SuppressWarnings("deprecation")
     public static FluidThrusterProperties getProperties(Fluid fluid) {
         if (fluid == null || fluid == Fluids.EMPTY) return null;
+        fluid = FluidHelper.convertToStill(fluid);
         if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
             return FluidThrusterProperties.DEFAULT;
         }
