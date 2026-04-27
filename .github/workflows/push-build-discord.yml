@@ -64,57 +64,59 @@ jobs:
             exit 1
           fi
 
-          # Build commit lines and compare URL
-          commit_lines=""
-          if [[ -n "${BEFORE_SHA}" && "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]]; then
-            before_short="${BEFORE_SHA:0:8}"
-            hash_range="${before_short}...${SHORT_SHA}"
-            compare_url="https://github.com/${GITHUB_REPOSITORY}/compare/${BEFORE_SHA}...${GITHUB_SHA}"
-            while IFS='|' read -r hash full_hash message author; do
-              [[ -z "$hash" ]] && continue
-              line_url="https://github.com/${GITHUB_REPOSITORY}/commit/${full_hash}"
-              commit_lines="${commit_lines}\n- [\`${hash}\`](${line_url}) ${message} - by ${author}"
-            done < <(git log --pretty=format:"%h|%H|%s|%an" "${BEFORE_SHA}..HEAD" 2>/dev/null | head -10)
-          else
-            hash_range="${SHORT_SHA}"
-            compare_url="https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
-            while IFS='|' read -r hash full_hash message author; do
-              [[ -z "$hash" ]] && continue
-              line_url="https://github.com/${GITHUB_REPOSITORY}/commit/${full_hash}"
-              commit_lines="${commit_lines}\n- [\`${hash}\`](${line_url}) ${message} - by ${author}"
-            done < <(git log --pretty=format:"%h|%H|%s|%an" -5 2>/dev/null)
-          fi
-
-          export COMMIT_LINES="${commit_lines}"
-          export HASH_RANGE="${hash_range}"
-          export COMPARE_URL="${compare_url}"
-          export TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-
           payload=$(python3 -c "
-          import json, os
+          import json, os, subprocess
+
           repo        = os.environ['GITHUB_REPOSITORY']
           repo_url    = f'https://github.com/{repo}'
-          compare_url = os.environ['COMPARE_URL']
-          hash_range  = os.environ['HASH_RANGE']
           branch      = os.environ['GITHUB_REF_NAME']
           artifact    = os.environ['ARTIFACT_NAME']
-          commits     = os.environ.get('COMMIT_LINES', '').replace('\\\\n', '\n')
-          timestamp   = os.environ['TIMESTAMP']
+          current_sha = os.environ['GITHUB_SHA']
+          short_sha   = os.environ['SHORT_SHA']
+          before_sha  = os.environ.get('BEFORE_SHA', '').strip()
+          timestamp   = subprocess.check_output(['date', '-u', '+%Y-%m-%dT%H:%M:%SZ']).decode().strip()
+
+          null_sha = '0000000000000000000000000000000000000000'
+          if before_sha and before_sha != null_sha:
+            before_short  = before_sha[:8]
+            hash_range    = f'{before_short}...{short_sha}'
+            compare_url   = f'https://github.com/{repo}/compare/{before_sha}...{current_sha}'
+            git_range     = f'{before_sha}..HEAD'
+            extra_args    = [git_range]
+          else:
+            hash_range    = short_sha
+            compare_url   = f'https://github.com/{repo}/commit/{current_sha}'
+            extra_args    = ['-5']
+
+          log = subprocess.check_output(
+            ['git', 'log', '--pretty=format:%h|%H|%s|%an'] + extra_args
+          ).decode().strip()
+
+          commit_lines = ''
+          for line in log.splitlines():
+            if not line:
+              continue
+            parts = line.split('|', 3)
+            if len(parts) < 4:
+              continue
+            h, full_h, msg, author = parts
+            url = f'https://github.com/{repo}/commit/{full_h}'
+            commit_lines += f'\n- [\`{h}\`]({url}) {msg} - by {author}'
 
           description = (
             f'🔗 **GitHub Repository:** {repo_url}\n\n'
             f'[{hash_range}]({compare_url})'
-            f'{commits}\n\n'
+            f'{commit_lines}\n\n'
             f'**Build attached below**'
           )
 
           payload = {
-            'content': '<@&1498285672543424559>',
+            'content': 'Test',
             'embeds': [{
               'title':       f'Building mod from branch {branch}',
               'color':       2303786,
               'description': description,
-              'footer':      {'text': 'Create: Propulsion Sable - Nightly'},
+              'footer':      {'text': 'RocketNautics Auto-Release'},
               'timestamp':   timestamp
             }]
           }
