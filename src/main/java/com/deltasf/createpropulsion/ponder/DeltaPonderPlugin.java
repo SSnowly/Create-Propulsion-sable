@@ -20,7 +20,9 @@ public class DeltaPonderPlugin implements PonderPlugin {
         HELPER.forComponents(PropulsionBlocks.SOLID_BURNER.get()).addStoryBoard("solid_burner", BurnerScenes::solidBurner);
         HELPER.forComponents(PropulsionBlocks.LIQUID_BURNER.get()).addStoryBoard("liquid_burner", BurnerScenes::liquidBurner);
         //Stirling engine
-        HELPER.forComponents(PropulsionBlocks.STIRLING_ENGINE_BLOCK.get()).addStoryBoard("stirling_engine", StirlingEngineScene::stirlingEngine);
+        HELPER.forComponents(PropulsionBlocks.STIRLING_ENGINE_BLOCK.get())
+                .addStoryBoard("stirling_engine_solid", StirlingEngineScene::stirlingEngine)
+                .addStoryBoard("stirling_engine_liquid", StirlingEngineScene::stirlingEngineLiquid);
         //Transmission
         HELPER.forComponents(PropulsionBlocks.REDSTONE_TRANSMISSION_BLOCK.get())
                 .addStoryBoard("redstone_transmission", TransmissionScenes::directControl)
