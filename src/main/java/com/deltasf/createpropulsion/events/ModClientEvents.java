@@ -10,6 +10,7 @@ import com.deltasf.createpropulsion.redstone_transmission.RedstoneTransmissionRe
 import com.deltasf.createpropulsion.redstone_transmission.RedstoneTransmissionVisual;
 import com.deltasf.createpropulsion.registries.PropulsionBlockEntities;
 import com.deltasf.createpropulsion.registries.PropulsionInstanceTypes;
+import com.deltasf.createpropulsion.tilt_adapter.TiltAdapterRenderer;
 import com.deltasf.createpropulsion.thruster.creative_thruster.CreativeThrusterRenderer;
 import com.deltasf.createpropulsion.thruster.creative_thruster.CreativeThrusterVisual;
 
@@ -70,5 +71,6 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(PropulsionBlockEntities.REDSTONE_TRANSMISSION_BLOCK_ENTITY.get(), RedstoneTransmissionRenderer::new);
         event.registerBlockEntityRenderer(PropulsionBlockEntities.CREATIVE_THRUSTER_BLOCK_ENTITY.get(), CreativeThrusterRenderer::new);
         event.registerBlockEntityRenderer(PropulsionBlockEntities.LIQUID_BURNER_BLOCK_ENTITY.get(), LiquidBurnerRenderer::new);
+        event.registerBlockEntityRenderer(PropulsionBlockEntities.TILT_ADAPTER_BLOCK_ENTITY.get(), TiltAdapterRenderer::new);
     }
 }

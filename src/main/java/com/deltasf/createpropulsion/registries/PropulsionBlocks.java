@@ -5,6 +5,7 @@ import com.deltasf.createpropulsion.heat.burners.liquid.LiquidBurnerBlock;
 import com.deltasf.createpropulsion.heat.burners.solid.SolidBurnerBlock;
 import com.deltasf.createpropulsion.heat.engine.StirlingEngineBlock;
 import com.deltasf.createpropulsion.redstone_transmission.RedstoneTransmissionBlock;
+import com.deltasf.createpropulsion.tilt_adapter.TiltAdapterBlock;
 import com.deltasf.createpropulsion.thruster.creative_thruster.CreativeThrusterBlock;
 import com.deltasf.createpropulsion.thruster.thruster.ThrusterBlock;
 import com.deltasf.createpropulsion.wing.CopycatWingBlock;
@@ -41,6 +42,9 @@ public class PropulsionBlocks {
     public static final DeferredBlock<StirlingEngineBlock> STIRLING_ENGINE_BLOCK = BLOCKS.register("stirling_engine",
         () -> new StirlingEngineBlock(Block.Properties.of().mapColor(MapColor.STONE).sound(SoundType.COPPER)
             .requiresCorrectToolForDrops().strength(2.5f, 2.0f).noOcclusion()));
+    public static final DeferredBlock<TiltAdapterBlock> TILT_ADAPTER_BLOCK = BLOCKS.register("tilt_adapter",
+        () -> new TiltAdapterBlock(Block.Properties.of().mapColor(MapColor.PODZOL)
+            .sound(SoundType.METAL).strength(2.5f, 2.0f).noOcclusion()));
 
     public static final DeferredBlock<WingBlock> WING_BLOCK = BLOCKS.register("wing",
         () -> new WingBlock(Block.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).sound(SoundType.COPPER)
@@ -62,6 +66,7 @@ public class PropulsionBlocks {
         registerDefaultBlockItem("solid_burner", SOLID_BURNER);
         registerDefaultBlockItem("liquid_burner", LIQUID_BURNER);
         registerDefaultBlockItem("stirling_engine", STIRLING_ENGINE_BLOCK);
+        registerDefaultBlockItem("tilt_adapter", TILT_ADAPTER_BLOCK);
         registerDefaultBlockItem("wing", WING_BLOCK);
         registerDefaultBlockItem("tempered_wing", TEMPERED_WING_BLOCK);
         BLOCK_ITEMS.register("copycat_wing", () -> new CopycatWingItem(COPYCAT_WING.get(), new BlockItem.Properties()));
@@ -69,6 +74,7 @@ public class PropulsionBlocks {
         BLOCK_ITEMS.register("copycat_wing_12", () -> new CopycatWingItem(COPYCAT_WING_12.get(), new BlockItem.Properties()));
 
         PropulsionDefaultStress.setImpact(ResourceLocation.fromNamespaceAndPath(CreatePropulsion.ID, "redstone_transmission"), 0, false);
+        PropulsionDefaultStress.setImpact(ResourceLocation.fromNamespaceAndPath(CreatePropulsion.ID, "tilt_adapter"), 0, false);
     }
 
     private static <T extends Block> void registerDefaultBlockItem(String name, DeferredBlock<T> block) {

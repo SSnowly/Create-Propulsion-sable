@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import com.deltasf.createpropulsion.heat.engine.StirlingEngineBlockEntity;
 import com.deltasf.createpropulsion.redstone_transmission.RedstoneTransmissionBlockEntity;
+import com.deltasf.createpropulsion.tilt_adapter.TiltAdapterBlockEntity;
 import com.deltasf.createpropulsion.thruster.creative_thruster.CreativeThrusterBlockEntity;
 import com.deltasf.createpropulsion.thruster.thruster.ThrusterBlockEntity;
 import com.simibubi.create.compat.computercraft.AbstractComputerBehaviour;
@@ -30,6 +31,7 @@ public class ComputerBehaviour extends AbstractComputerBehaviour {
         register(CreativeThrusterBlockEntity.class, CreativeThrusterPeripheral::new);
         register(StirlingEngineBlockEntity.class, StirlingEnginePeripheral::new);
         register(RedstoneTransmissionBlockEntity.class, RedstoneTransmissionPeripheral::new);
+        register(TiltAdapterBlockEntity.class, TiltAdapterPeripheral::new);
     }
 
     public ComputerBehaviour(SmartBlockEntity blockEntity) {

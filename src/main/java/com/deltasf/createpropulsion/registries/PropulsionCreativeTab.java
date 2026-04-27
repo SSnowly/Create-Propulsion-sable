@@ -52,6 +52,7 @@ public class PropulsionCreativeTab {
                 output.accept(PropulsionBlocks.LIQUID_BURNER.get());
                 //output.accept(PropulsionBlocks.REACTION_WHEEL_BLOCK);
                 output.accept(PropulsionBlocks.STIRLING_ENGINE_BLOCK.get());
+                output.accept(PropulsionBlocks.TILT_ADAPTER_BLOCK.get());
                 //From 0.3 (items)
             }
         }

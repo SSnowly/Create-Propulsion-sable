@@ -33,6 +33,7 @@ public class PropulsionConfig {
     
     //Stirling engine
     public static final ModConfigSpec.ConfigValue<Double> STIRLING_GENERATED_SU;
+    public static final ModConfigSpec.ConfigValue<Double> TILT_ADAPTER_ANGLE_RANGE;
 
     public static final ModConfigSpec.ConfigValue<Double> STIRLING_REVOLUTION_PERIOD;
     public static final ModConfigSpec.ConfigValue<Double> STIRLING_CRANK_RADIUS;
@@ -106,6 +107,11 @@ public class PropulsionConfig {
         SERVER_BUILDER.push("Stirling Engine");
             STIRLING_GENERATED_SU = SERVER_BUILDER.comment("Change this value to modify the amount of stress units produced by stirling engine. Value of 16 corresponds to 4096 SU.")
                 .defineInRange("Generated stress units", 16.0, 1.0, 64.0);
+        SERVER_BUILDER.pop();
+
+        SERVER_BUILDER.push("Tilt Adapter");
+            TILT_ADAPTER_ANGLE_RANGE = SERVER_BUILDER.comment("Maximum absolute output angle in degrees, reached at full redstone differential.")
+                .defineInRange("Maximum angle range", 45.0, 0.0, 180.0);
         SERVER_BUILDER.pop();
 
         SERVER_BUILDER.push("Burners");
