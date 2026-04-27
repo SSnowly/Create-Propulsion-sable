@@ -67,7 +67,7 @@ jobs:
 
           commit_url="https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
           payload="$(cat <<EOF
-{"embeds":[{"title":"Nightly build ${SHORT_SHA}","url":"${commit_url}","description":"Built from \`${GITHUB_REPOSITORY}\`","color":5814783,"fields":[{"name":"Branch","value":"\`${GITHUB_REF_NAME}\`","inline":true},{"name":"Commit","value":"[\`${SHORT_SHA}\`](${commit_url})","inline":true},{"name":"Artifact","value":"\`${ARTIFACT_NAME}\`","inline":false}]}]}
+{"embeds":[{"title":"Nightly build ${SHORT_SHA}","url":"${commit_url}","description":"Built from ${GITHUB_REPOSITORY}","color":5814783,"fields":[{"name":"Branch","value":"${GITHUB_REF_NAME}","inline":true},{"name":"Commit","value":"[${SHORT_SHA}](${commit_url})","inline":true},{"name":"Artifact","value":"${ARTIFACT_NAME}","inline":false}]}]}
 EOF
 )"
 
