@@ -4,6 +4,7 @@ import com.deltasf.createpropulsion.PropulsionConfig;
 import com.deltasf.createpropulsion.thruster.AbstractThrusterBlockEntity;
 import com.deltasf.createpropulsion.thruster.FluidThrusterProperties;
 import com.deltasf.createpropulsion.thruster.ThrusterFuelManager;
+import com.deltasf.createpropulsion.thruster.ThrusterParticleType;
 import com.deltasf.createpropulsion.registries.PropulsionBlockEntities;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
@@ -12,10 +13,12 @@ import net.createmod.catnip.lang.LangBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
@@ -75,6 +78,15 @@ public class ThrusterBlockEntity extends AbstractThrusterBlockEntity {
         return validFluid();
     }
 
+    @Override
+    protected boolean shouldEmitParticles() {
+        if (!super.shouldEmitParticles()) {
+            return false;
+        }
+        FluidThrusterProperties properties = getFuelProperties(fluidStack().getFluid());
+        return properties != null && properties.particleType != ThrusterParticleType.NONE;
+    }
+
     public Direction getFluidCapSide() {
         return getBlockState().getValue(ThrusterBlock.FACING);
     }
@@ -125,6 +137,27 @@ public class ThrusterBlockEntity extends AbstractThrusterBlockEntity {
 
     public FluidThrusterProperties getFuelProperties(Fluid fluid) {
         return ThrusterFuelManager.getProperties(fluid);
+    }
+
+    @Override
+    protected ParticleOptions createParticleOptions() {
+        FluidThrusterProperties properties = getFuelProperties(fluidStack().getFluid());
+        if (properties == null) {
+            return super.createParticleOptions();
+        }
+        FluidThrusterProperties resolvedProperties = properties;
+        if (properties.useFluidColor) {
+            int fluidColor = IClientFluidTypeExtensions.of(fluidStack().getFluid()).getTintColor(fluidStack()) & 0xFFFFFF;
+            resolvedProperties = new FluidThrusterProperties(
+                properties.thrustMultiplier,
+                properties.consumptionMultiplier,
+                properties.particleType,
+                properties.overrideTextures,
+                fluidColor,
+                true
+            );
+        }
+        return resolvedProperties.particleType.createParticleOptions(resolvedProperties);
     }
 
     private int calculateFuelConsumption(float powerPercentage, float fluidPropertiesConsumptionMultiplier, int tick_rate) {

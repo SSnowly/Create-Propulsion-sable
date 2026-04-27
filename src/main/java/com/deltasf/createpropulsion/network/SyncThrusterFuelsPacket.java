@@ -2,6 +2,7 @@ package com.deltasf.createpropulsion.network;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.deltasf.createpropulsion.thruster.FluidThrusterProperties;
 import com.deltasf.createpropulsion.thruster.ThrusterFuelManager;
@@ -13,8 +14,9 @@ import net.minecraft.world.level.material.Fluid;
 
 public class SyncThrusterFuelsPacket {
     private final Map<ResourceLocation, FluidThrusterProperties> fuelMap;
+    private final Set<ResourceLocation> removedFuelIds;
 
-    public static SyncThrusterFuelsPacket create(Map<Fluid, FluidThrusterProperties> mapToSync) {
+    public static SyncThrusterFuelsPacket create(Map<Fluid, FluidThrusterProperties> mapToSync, Set<ResourceLocation> removedFuelIds) {
         Map<ResourceLocation, FluidThrusterProperties> networkSafeMap = new HashMap<>();
         mapToSync.forEach((fluid, props) -> {
             ResourceLocation key = BuiltInRegistries.FLUID.getKey(fluid);
@@ -22,23 +24,26 @@ public class SyncThrusterFuelsPacket {
                 networkSafeMap.put(key, props);
             }
         });
-        return new SyncThrusterFuelsPacket(networkSafeMap);
+        return new SyncThrusterFuelsPacket(networkSafeMap, removedFuelIds);
     }
 
-    private SyncThrusterFuelsPacket(Map<ResourceLocation, FluidThrusterProperties> fuelMap) {
+    private SyncThrusterFuelsPacket(Map<ResourceLocation, FluidThrusterProperties> fuelMap, Set<ResourceLocation> removedFuelIds) {
         this.fuelMap = fuelMap;
+        this.removedFuelIds = removedFuelIds;
     }
 
     public static SyncThrusterFuelsPacket decode(FriendlyByteBuf buf) {
         Map<ResourceLocation, FluidThrusterProperties> map = buf.readMap(FriendlyByteBuf::readResourceLocation, FluidThrusterProperties::decode);
-        return new SyncThrusterFuelsPacket(map);
+        Set<ResourceLocation> removedFuelIds = buf.readCollection(java.util.HashSet::new, FriendlyByteBuf::readResourceLocation);
+        return new SyncThrusterFuelsPacket(map, removedFuelIds);
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeMap(this.fuelMap, FriendlyByteBuf::writeResourceLocation, (b, props) -> props.encode(b));
+        buf.writeCollection(this.removedFuelIds, FriendlyByteBuf::writeResourceLocation);
     }
 
     public void handle() {
-        ThrusterFuelManager.updateClient(this.fuelMap);
+        ThrusterFuelManager.updateClient(this.fuelMap, this.removedFuelIds);
     }
 }

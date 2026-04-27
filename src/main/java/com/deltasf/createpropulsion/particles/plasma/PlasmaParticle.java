@@ -1,13 +1,19 @@
 package com.deltasf.createpropulsion.particles.plasma;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SimpleAnimatedParticle;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -35,14 +41,16 @@ public class PlasmaParticle extends SimpleAnimatedParticle {
     
     private float currentSpeedMultiplier;
     private float baseSize;
+    private final List<ResourceLocation> overrideTextures;
     
     double dx; double dy; double dz;
 
     protected PlasmaParticle(ClientLevel level, double x, double y, double z, 
                             double dxSource, double dySource, double dzSource, 
-                            SpriteSet spriteSet) {
+                            SpriteSet spriteSet, PlasmaParticleData data) {
         super(level, x, y, z, spriteSet, 0);
         this.spriteSet = spriteSet;
+        this.overrideTextures = data.overrideTextures();
         
         //Initialize plasma state
         this.quadSize *= PLASMA_BASE_QUAD_SIZE;
@@ -63,7 +71,12 @@ public class PlasmaParticle extends SimpleAnimatedParticle {
         }
 
         setSpriteFromAge(this.spriteSet);
-        setColor(0xFFFFFF);
+        if (data.overrideColor() == null) {
+            setColor(0xFFFFFF);
+        } else {
+            int rgb = data.overrideColor() & 0xFFFFFF;
+            this.setColor(((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f);
+        }
         setAlpha(1);
     }
 
@@ -215,6 +228,16 @@ public class PlasmaParticle extends SimpleAnimatedParticle {
     private void pickSprite() {
         int frameIndex = (int) (((float)this.age / (float)this.lifetime) * PLASMA_SPRITE_COUNT);
         frameIndex = Mth.clamp(frameIndex, 0, PLASMA_SPRITE_COUNT - 1);
+        if (!this.overrideTextures.isEmpty()) {
+            try {
+                ResourceLocation texture = this.overrideTextures.get(frameIndex % this.overrideTextures.size());
+                TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_PARTICLES).apply(texture);
+                this.setSprite(sprite);
+                return;
+            } catch (Exception ignored) {
+                // Fallback to built-in sprites when the atlas is unavailable or texture id is invalid.
+            }
+        }
         this.setSprite(this.spriteSet.get(frameIndex, PLASMA_SPRITE_COUNT));
     }
 
@@ -236,7 +259,7 @@ public class PlasmaParticle extends SimpleAnimatedParticle {
         @Override
         public Particle createParticle(@Nonnull PlasmaParticleData data, @Nonnull ClientLevel level, 
         double x, double y, double z, double dx, double dy, double dz){
-            return new PlasmaParticle(level, x, y, z, dx, dy, dz, this.spriteSet);
+            return new PlasmaParticle(level, x, y, z, dx, dy, dz, this.spriteSet, data);
         }
     }
 }

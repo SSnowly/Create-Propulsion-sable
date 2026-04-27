@@ -1,6 +1,7 @@
 package com.deltasf.createpropulsion.thruster;
 
 import java.util.Optional;
+import java.util.List;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -14,6 +15,10 @@ public record ThrusterFuelDefinition (
     ResourceLocation fluidId,
     float thrustMultiplier,
     float consumptionMultiplier,
+    ThrusterParticleType particle,
+    List<ResourceLocation> overrideTextures,
+    Optional<Integer> overrideColor,
+    boolean useFluidColor,
     Optional<String> requiredMod
 ) {
     public static final Codec<ThrusterFuelDefinition> CODEC = RecordCodecBuilder.create(instance -> 
@@ -21,6 +26,10 @@ public record ThrusterFuelDefinition (
             ResourceLocation.CODEC.fieldOf("fluid").forGetter(ThrusterFuelDefinition::fluidId),
             Codec.FLOAT.fieldOf("thrust_multiplier").forGetter(ThrusterFuelDefinition::thrustMultiplier),
             Codec.FLOAT.fieldOf("consumption_multiplier").forGetter(ThrusterFuelDefinition::consumptionMultiplier),
+            ThrusterParticleType.CODEC.optionalFieldOf("particle", ThrusterParticleType.PLUME).forGetter(ThrusterFuelDefinition::particle),
+            ResourceLocation.CODEC.listOf().optionalFieldOf("override_textures", List.of()).forGetter(ThrusterFuelDefinition::overrideTextures),
+            Codec.INT.optionalFieldOf("override_color").forGetter(ThrusterFuelDefinition::overrideColor),
+            Codec.BOOL.optionalFieldOf("use_fluid_color", false).forGetter(ThrusterFuelDefinition::useFluidColor),
             Codec.STRING.optionalFieldOf("required_mod").forGetter(ThrusterFuelDefinition::requiredMod)
         ).apply(instance, ThrusterFuelDefinition::new));
 

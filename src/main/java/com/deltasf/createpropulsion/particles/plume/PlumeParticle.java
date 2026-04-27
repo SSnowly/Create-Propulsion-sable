@@ -1,13 +1,19 @@
 package com.deltasf.createpropulsion.particles.plume;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SimpleAnimatedParticle;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -47,6 +53,7 @@ public class PlumeParticle extends SimpleAnimatedParticle {
     private final Vec3 spreadDirection;
     private final float spreadMagnitude;
     private boolean hasCollided = false;
+    private final List<ResourceLocation> overrideTextures;
 
     double dx; double dy; double dz;
     float baseSize;
@@ -54,9 +61,10 @@ public class PlumeParticle extends SimpleAnimatedParticle {
 
     protected PlumeParticle(ClientLevel level, double x, double y, double z, 
                             double dxSource, double dySource, double dzSource, 
-                            SpriteSet spriteSet) {
+                            SpriteSet spriteSet, PlumeParticleData data) {
         super(level, x, y, z, spriteSet, 0);
         this.spriteSet = spriteSet;
+        this.overrideTextures = data.overrideTextures();
         //Initialize plume state
         this.quadSize *= PLUME_BASE_QUAD_SIZE;
         this.baseSize = this.quadSize;
@@ -84,7 +92,12 @@ public class PlumeParticle extends SimpleAnimatedParticle {
         this.smokeLift = SMOKE_BASE_LIFt + -0.01f + this.random.nextFloat() * (0.03f - -0.01f); //-0.1 - 0.03
 
         setSpriteFromAge(this.spriteSet);
-        setColor(0xFFFFFF);
+        if (data.overrideColor() == null) {
+            setColor(0xFFFFFF);
+        } else {
+            int rgb = data.overrideColor() & 0xFFFFFF;
+            this.setColor(((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f);
+        }
         setAlpha(1);
     }
 
@@ -267,6 +280,16 @@ public class PlumeParticle extends SimpleAnimatedParticle {
             frameIndex = PLUME_SPRITE_COUNT + smokeFrame;
         }
 
+        if (!this.overrideTextures.isEmpty()) {
+            try {
+                ResourceLocation texture = this.overrideTextures.get(frameIndex % this.overrideTextures.size());
+                TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_PARTICLES).apply(texture);
+                this.setSprite(sprite);
+                return;
+            } catch (Exception ignored) {
+                // Fallback to built-in sprites when the atlas is unavailable or texture id is invalid.
+            }
+        }
         this.setSprite(this.spriteSet.get(frameIndex, PLUME_SPRITE_COUNT + SMOKE_SPRITE_COUNT));
     }
 
@@ -289,7 +312,7 @@ public class PlumeParticle extends SimpleAnimatedParticle {
         @Override
         public Particle createParticle(@Nonnull PlumeParticleData data, @Nonnull ClientLevel level, 
         double x, double y, double z, double dx, double dy, double dz){
-            return new PlumeParticle(level, x, y, z, dx, dy, dz, this.spriteSet);
+            return new PlumeParticle(level, x, y, z, dx, dy, dz, this.spriteSet, data);
         }
     }
 }

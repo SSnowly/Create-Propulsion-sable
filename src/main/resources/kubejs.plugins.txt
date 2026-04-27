@@ -1,0 +1,2 @@
+com.deltasf.createpropulsion.compat.kubejs.PropulsionKubeJSPlugin
+com.deltasf.createpropulsion.compat.kubejs.PropulsionKubeJSPlugin

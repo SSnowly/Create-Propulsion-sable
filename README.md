@@ -51,3 +51,9 @@
 
 - Many systems are configurable in server/client config.
 - Fuel support is data-driven (`data/createpropulsion/thruster_fuels`) and can be extended with datapacks.
+
+# Wiki
+
+- [KubeJS API](wiki/KubeJS-API.md)
+- [ComputerCraft Peripherals](wiki/ComputerCraft-Peripherals.md)
+- [Datapack example usage](wiki/Datapack-Example-Usage.md)
