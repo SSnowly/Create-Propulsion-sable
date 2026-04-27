@@ -13,17 +13,24 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
+
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v4
+
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
+
       - name: Build
         run: ./gradlew clean build --no-daemon
+
       - name: Prepare nightly jar artifact
         id: artifact
         shell: bash
@@ -41,12 +48,14 @@ jobs:
           echo "path=${nightly_path}" >> "${GITHUB_OUTPUT}"
           echo "name=${nightly_name}" >> "${GITHUB_OUTPUT}"
           echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+
       - name: Send jar to Discord webhook
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           ARTIFACT_PATH: ${{ steps.artifact.outputs.path }}
           ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
           SHORT_SHA: ${{ steps.artifact.outputs.short_sha }}
+          BEFORE_SHA: ${{ github.event.before || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -54,8 +63,64 @@ jobs:
             echo "Missing required secret: DISCORD_WEBHOOK_URL"
             exit 1
           fi
-          commit_url="https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
-          payload="{\"embeds\":[{\"title\":\"Nightly build ${SHORT_SHA}\",\"url\":\"${commit_url}\",\"description\":\"Built from ${GITHUB_REPOSITORY}\",\"color\":5814783,\"fields\":[{\"name\":\"Branch\",\"value\":\"${GITHUB_REF_NAME}\",\"inline\":true},{\"name\":\"Commit\",\"value\":\"[${SHORT_SHA}](${commit_url})\",\"inline\":true},{\"name\":\"Artifact\",\"value\":\"${ARTIFACT_NAME}\",\"inline\":false}]}]}"
+
+          # Build commit lines and compare URL
+          commit_lines=""
+          if [[ -n "${BEFORE_SHA}" && "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]]; then
+            before_short="${BEFORE_SHA:0:8}"
+            hash_range="${before_short}...${SHORT_SHA}"
+            compare_url="https://github.com/${GITHUB_REPOSITORY}/compare/${BEFORE_SHA}...${GITHUB_SHA}"
+            while IFS='|' read -r hash full_hash message author; do
+              [[ -z "$hash" ]] && continue
+              line_url="https://github.com/${GITHUB_REPOSITORY}/commit/${full_hash}"
+              commit_lines="${commit_lines}\n- [\`${hash}\`](${line_url}) ${message} - by ${author}"
+            done < <(git log --pretty=format:"%h|%H|%s|%an" "${BEFORE_SHA}..HEAD" 2>/dev/null | head -10)
+          else
+            hash_range="${SHORT_SHA}"
+            compare_url="https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+            while IFS='|' read -r hash full_hash message author; do
+              [[ -z "$hash" ]] && continue
+              line_url="https://github.com/${GITHUB_REPOSITORY}/commit/${full_hash}"
+              commit_lines="${commit_lines}\n- [\`${hash}\`](${line_url}) ${message} - by ${author}"
+            done < <(git log --pretty=format:"%h|%H|%s|%an" -5 2>/dev/null)
+          fi
+
+          export COMMIT_LINES="${commit_lines}"
+          export HASH_RANGE="${hash_range}"
+          export COMPARE_URL="${compare_url}"
+          export TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+          payload=$(python3 -c "
+          import json, os
+          repo        = os.environ['GITHUB_REPOSITORY']
+          repo_url    = f'https://github.com/{repo}'
+          compare_url = os.environ['COMPARE_URL']
+          hash_range  = os.environ['HASH_RANGE']
+          branch      = os.environ['GITHUB_REF_NAME']
+          artifact    = os.environ['ARTIFACT_NAME']
+          commits     = os.environ.get('COMMIT_LINES', '').replace('\\\\n', '\n')
+          timestamp   = os.environ['TIMESTAMP']
+
+          description = (
+            f'🔗 **GitHub Repository:** {repo_url}\n\n'
+            f'[{hash_range}]({compare_url})'
+            f'{commits}\n\n'
+            f'**Build attached below**'
+          )
+
+          payload = {
+            'content': '<@&1498285672543424559>',
+            'embeds': [{
+              'title':       f'Building mod from branch {branch}',
+              'color':       2303786,
+              'description': description,
+              'footer':      {'text': 'Create: Propulsion Sable - Nightly'},
+              'timestamp':   timestamp
+            }]
+          }
+          print(json.dumps(payload))
+          ")
+
           curl -sS -X POST "${DISCORD_WEBHOOK_URL}" \
             -F "payload_json=${payload}" \
             -F "file1=@${ARTIFACT_PATH};filename=${ARTIFACT_NAME}"
