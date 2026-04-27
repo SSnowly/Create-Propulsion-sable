@@ -33,7 +33,7 @@ jobs:
       - name: Build
         run: ./gradlew clean build --no-daemon
 
-      - name: Select jar artifact
+      - name: Prepare nightly jar artifact
         id: artifact
         shell: bash
         run: |
@@ -43,14 +43,20 @@ jobs:
             echo "No jar artifact found in build/libs"
             exit 1
           fi
-          echo "path=${artifact}" >> "${GITHUB_OUTPUT}"
-          echo "name=$(basename "${artifact}")" >> "${GITHUB_OUTPUT}"
+          short_sha="${GITHUB_SHA:0:8}"
+          nightly_name="createpropulsion-nightly-${short_sha}.jar"
+          nightly_path="build/libs/${nightly_name}"
+          cp "${artifact}" "${nightly_path}"
+          echo "path=${nightly_path}" >> "${GITHUB_OUTPUT}"
+          echo "name=${nightly_name}" >> "${GITHUB_OUTPUT}"
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
 
       - name: Send jar to Discord webhook
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           ARTIFACT_PATH: ${{ steps.artifact.outputs.path }}
           ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
+          SHORT_SHA: ${{ steps.artifact.outputs.short_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -59,8 +65,12 @@ jobs:
             exit 1
           fi
 
-          message="New push build for ${GITHUB_REPOSITORY} | Branch: ${GITHUB_REF_NAME} | Commit: ${GITHUB_SHA} | Artifact: ${ARTIFACT_NAME}"
+          commit_url="https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+          payload="$(cat <<EOF
+{"embeds":[{"title":"Nightly build ${SHORT_SHA}","url":"${commit_url}","description":"Built from \`${GITHUB_REPOSITORY}\`","color":5814783,"fields":[{"name":"Branch","value":"\`${GITHUB_REF_NAME}\`","inline":true},{"name":"Commit","value":"[\`${SHORT_SHA}\`](${commit_url})","inline":true},{"name":"Artifact","value":"\`${ARTIFACT_NAME}\`","inline":false}]}]}
+EOF
+)"
 
           curl -sS -X POST "${DISCORD_WEBHOOK_URL}" \
-            -F "payload_json={\"content\":\"${message}\"}" \
+            -F "payload_json=${payload}" \
             -F "file1=@${ARTIFACT_PATH};filename=${ARTIFACT_NAME}"
