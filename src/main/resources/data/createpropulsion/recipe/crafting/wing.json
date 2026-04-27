@@ -14,7 +14,7 @@
         }
     },
     "result": {
-        "item": "createpropulsion:wing",
+        "id": "createpropulsion:wing",
         "count": 2
     }
 }

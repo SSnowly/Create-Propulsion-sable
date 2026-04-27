@@ -17,6 +17,6 @@
         }
     },
     "result": {
-        "item": "createpropulsion:solid_burner"
+        "id": "createpropulsion:solid_burner"
     }
 }

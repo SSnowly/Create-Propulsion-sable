@@ -20,6 +20,6 @@
         }
     },
     "result": {
-        "item": "createpropulsion:redstone_transmission"
+        "id": "createpropulsion:redstone_transmission"
     }
 }

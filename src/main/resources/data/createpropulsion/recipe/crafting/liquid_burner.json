@@ -17,6 +17,6 @@
         }
     },
     "result": {
-        "item": "createpropulsion:liquid_burner"
+        "id": "createpropulsion:liquid_burner"
     }
 }

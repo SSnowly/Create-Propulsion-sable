@@ -7,11 +7,11 @@
     "results": [
         {
         "chance": 95.0,
-        "item": "createpropulsion:optical_lens"
+        "id": "createpropulsion:optical_lens"
         },
         {
         "chance": 5.0,
-        "item": "minecraft:glass_bottle"
+        "id": "minecraft:glass_bottle"
         }
     ],
     "sequence": [
@@ -27,7 +27,7 @@
         ],
         "results": [
             {
-            "item": "createpropulsion:unfinished_lens"
+            "id": "createpropulsion:unfinished_lens"
             }
         ]
         },
@@ -45,12 +45,12 @@
         ],
         "results": [
             {
-            "item": "createpropulsion:unfinished_lens"
+            "id": "createpropulsion:unfinished_lens"
             }
         ]
         }
     ],
     "transitionalItem": {
-        "item": "createpropulsion:unfinished_lens"
+        "id": "createpropulsion:unfinished_lens"
     }
 }

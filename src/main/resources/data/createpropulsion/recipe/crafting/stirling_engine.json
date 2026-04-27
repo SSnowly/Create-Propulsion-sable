@@ -20,6 +20,6 @@
         }
     },
     "result": {
-        "item": "createpropulsion:stirling_engine"
+        "id": "createpropulsion:stirling_engine"
     }
 }

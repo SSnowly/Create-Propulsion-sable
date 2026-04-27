@@ -9,7 +9,7 @@
     "results": [
       {
         "chance": 0.6,
-        "item": "createpropulsion:pine_resin"
+        "id": "createpropulsion:pine_resin"
       }
     ]
   }

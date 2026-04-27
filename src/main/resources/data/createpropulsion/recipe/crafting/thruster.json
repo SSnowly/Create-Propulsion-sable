@@ -23,6 +23,6 @@
         }
     },
     "result": {
-        "item": "createpropulsion:thruster"
+        "id": "createpropulsion:thruster"
     }
 }
